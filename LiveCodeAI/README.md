@@ -1,80 +1,117 @@
-# LiveCodeAI
+# LiveCode - Collaborative Code Editor with AI
 
-A real-time collaborative code editor with intelligent AI assistance.
+LiveCode is a real-time collaborative code editor with built-in AI assistance, live preview, and file management inspired by modern IDEs like VS Code.
+
+![LiveCode Screenshot](https://via.placeholder.com/800x450.png?text=LiveCode+Screenshot)
 
 ## Features
 
-- Real-time collaborative editing using Y.js and WebSockets
-- AI-powered code assistance using GPT-4
-- File management system
-- Live user presence and cursor tracking
-- AI chat sidebar for code-related queries
-- Monaco Editor integration (same as VS Code)
+- 🤖 **AI-powered code assistance** - Get code suggestions, refactoring tips, and explanations
+- 🔄 **Real-time collaboration** - Multiple users can edit the same files simultaneously
+- 👁️ **Live preview** - See your HTML/CSS/JS code come to life in real-time
+- 📂 **File management** - Create, edit, and organize files and folders
+- 🌈 **Syntax highlighting** - Support for multiple languages
+- 💾 **Auto-save** - Changes are saved automatically
 
-## Prerequisites
+## Quick Start
 
-- Node.js (v14 or higher)
-- npm or yarn
-- OpenAI API key
+### Prerequisites
 
-## Setup
+- Node.js (v14 or later)
+- npm (v6 or later)
+
+### Installation
 
 1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/LiveCodeAI.git
-cd LiveCodeAI
-```
+   ```bash
+   git clone https://github.com/yourusername/livecode.git
+   cd livecode
+   ```
 
 2. Install dependencies:
-```bash
-npm run install-all
-```
+   ```bash
+   npm run install-all
+   ```
 
 3. Create a `.env` file in the root directory:
-```
-OPENAI_API_KEY=your_openai_api_key
-PORT=5000
-```
+   ```
+   GROQ_API_KEY=your_groq_api_key_here
+   ```
+   
+   If you don't have a Groq API key, you can still run the application in mock mode.
 
-4. Start the development server:
+### Running the Application
+
+To start both the server and client with a single command:
+
 ```bash
-npm run dev
+npm run launch
 ```
 
-The application will be available at:
-- Frontend: http://localhost:3000
-- Backend: http://localhost:5000
+This will start:
+- Backend server on http://localhost:5000
+- Frontend client on http://localhost:3000
 
-## Project Structure
+You can also run them separately:
 
-```
-/LiveCodeAI
-├── /client                 # React frontend
-│   ├── /src
-│   │   ├── /components    # React components
-│   │   ├── /store        # Zustand state management
-│   │   └── App.jsx       # Main application component
-│   └── package.json
-├── /server                # Express backend
-│   ├── index.js          # Server entry point
-│   └── package.json
-└── README.md
+```bash
+# Start just the server
+npm run server
+
+# Start just the client
+npm run client
 ```
 
-## AI Features
+## How to Use
 
-1. **Inline Suggestions**
-   - Trigger with `// ai:` or Cmd+J
-   - Select code and choose "Refactor with AI"
+### Code Editing
 
-2. **AI Chat**
-   - Ask questions about code
-   - Request optimizations
-   - Get explanations
+- Create new files and folders using the file explorer
+- Edit your code with syntax highlighting
+- Use the AI assistant to get help with your code
 
-3. **Natural Language to Code**
-   - Describe what you want to create
-   - AI generates the code
+### Live Preview
+
+- Toggle the preview panel using the eye icon
+- See your HTML/CSS/JS changes in real-time
+- Preview updates automatically as you type
+
+### AI Assistant
+
+1. Select a file you want help with
+2. Type your question or request in the AI assistant panel
+3. Receive code suggestions and explanations
+4. Click on action buttons to:
+   - Copy code to clipboard
+   - Implement code directly in the current file
+   - Create a new file with the suggested code
+
+## Configuration
+
+### Server Configuration
+
+Edit `server/.env` to customize:
+
+```
+PORT=5000                       # Server port
+GROQ_API_KEY=your_api_key_here  # API key for Groq
+```
+
+### Client Configuration
+
+The client uses environment variables in `client/.env`:
+
+```
+PORT=3000                      # Client port
+REACT_APP_SERVER_URL=http://localhost:5000  # Server URL
+```
+
+## Technology Stack
+
+- **Frontend**: React, Monaco Editor, styled-components
+- **Backend**: Node.js, Express
+- **Real-time**: Socket.io, Y.js
+- **AI**: Groq API integration
 
 ## Contributing
 
@@ -86,4 +123,10 @@ The application will be available at:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- VS Code for inspiration
+- Y.js for real-time collaboration capabilities
+- Groq for AI integration 

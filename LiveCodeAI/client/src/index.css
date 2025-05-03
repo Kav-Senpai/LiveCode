@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Real-time collaboration styles */
+.yjs-remote-insert {
+  background-color: rgba(78, 190, 114, 0.2);
+  animation: highlight-insert 1s ease-out;
+}
+
+.yjs-remote-delete {
+  background-color: rgba(255, 99, 71, 0.2);
+  animation: highlight-delete 1s ease-out;
+}
+
+@keyframes highlight-insert {
+  0% { background-color: rgba(78, 190, 114, 0.5); }
+  100% { background-color: transparent; }
+}
+
+@keyframes highlight-delete {
+  0% { background-color: rgba(255, 99, 71, 0.5); }
+  100% { background-color: transparent; }
+}
+
+/* Remote user avatar animations */
+.remote-user-avatar {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Figma-like user cursors */
+.remote-cursor-content {
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.remote-cursor-content::after {
+  transform-origin: left top;
+  transition: transform 0.1s ease-out;
+} 
