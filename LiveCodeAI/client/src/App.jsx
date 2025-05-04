@@ -4,8 +4,9 @@ import Editor from './components/Editor';
 import FileTree from './components/FileTree';
 import ChatSidebar from './components/ChatSidebar';
 import Preview from './components/Preview';
+import PromptToFileGenerator from './components/PromptToFileGenerator';
 import { useStore } from './store/useStore';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaMagic } from 'react-icons/fa';
 
 const AppContainer = styled.div`
   display: flex;
@@ -50,9 +51,38 @@ const PreviewToggle = styled.button`
   }
 `;
 
+const GenerateButton = styled.button`
+  position: absolute;
+  top: 5px;
+  right: 45px; // Positioned to the left of the preview toggle
+  z-index: 10;
+  background: #007acc;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  cursor: pointer;
+  opacity: 0.9;
+  font-size: 12px;
+  
+  &:hover {
+    opacity: 1;
+    background: #0069b3;
+  }
+  
+  svg {
+    margin-right: 5px;
+  }
+`;
+
 const App = () => {
   const { files, addFolder, addFile } = useStore();
   const [previewVisible, setPreviewVisible] = useState(false);
+  const [generatorOpen, setGeneratorOpen] = useState(false);
   
   // Initialize with some sample files and folders
   useEffect(() => {
@@ -215,8 +245,25 @@ A real-time collaborative code editor with the following features:
     }
   }, [files.length, addFolder, addFile]);
 
+  // Add event listener for the custom event
+  useEffect(() => {
+    const handleOpenGenerator = () => {
+      setGeneratorOpen(true);
+    };
+    
+    window.addEventListener('openPromptToFileGenerator', handleOpenGenerator);
+    
+    return () => {
+      window.removeEventListener('openPromptToFileGenerator', handleOpenGenerator);
+    };
+  }, []);
+
   const togglePreview = () => {
     setPreviewVisible(!previewVisible);
+  };
+  
+  const closeGenerator = () => {
+    setGeneratorOpen(false);
   };
 
   return (
@@ -224,6 +271,9 @@ A real-time collaborative code editor with the following features:
       <FileTree />
       <MainContent>
         <EditorContainer>
+          <GenerateButton onClick={() => setGeneratorOpen(true)}>
+            <FaMagic /> Generate Files
+          </GenerateButton>
           <PreviewToggle onClick={togglePreview} title={previewVisible ? "Hide Preview" : "Show Preview"}>
             {previewVisible ? <FaEyeSlash /> : <FaEye />}
           </PreviewToggle>
@@ -232,6 +282,7 @@ A real-time collaborative code editor with the following features:
         <Preview visible={previewVisible} />
         <ChatSidebar />
       </MainContent>
+      <PromptToFileGenerator isOpen={generatorOpen} onClose={closeGenerator} />
     </AppContainer>
   );
 };

@@ -11,7 +11,12 @@ import {
   FaTimesCircle,
   FaClipboard,
   FaSearch,
-  FaCog
+  FaCog,
+  FaLaptopCode,
+  FaMagic,
+  FaPencilAlt,
+  FaBookOpen,
+  FaFileCode
 } from 'react-icons/fa';
 import Prism from 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
@@ -46,6 +51,12 @@ const ChatTitle = styled.div`
   font-weight: 500;
 `;
 
+const HeaderActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
 const SettingsButton = styled.button`
   background: transparent;
   border: none;
@@ -54,6 +65,24 @@ const SettingsButton = styled.button`
   
   &:hover {
     color: #ccc;
+  }
+`;
+
+const GenerateFilesButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #2d2d2d;
+  border: none;
+  border-radius: 4px;
+  color: #ccc;
+  font-size: 12px;
+  padding: 4px 8px;
+  cursor: pointer;
+  
+  &:hover {
+    background: #3d3d3d;
+    color: #fff;
   }
 `;
 
@@ -247,38 +276,155 @@ const extractCodeBlocks = (text) => {
   return blocks;
 };
 
+const PairProgrammingContainer = styled.div`
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #2d2d2d;
+  border-radius: 8px;
+  border-left: 3px solid #007acc;
+`;
+
+const PairProgrammingHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+`;
+
+const PairProgrammingTitle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: #fff;
+`;
+
+const PairProgrammingToggle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+`;
+
+const ToggleSwitch = styled.label`
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  margin-left: 0.5rem;
+  
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  span {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #555;
+    transition: .4s;
+    border-radius: 20px;
+    
+    &:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+  }
+  
+  input:checked + span {
+    background-color: #007acc;
+  }
+  
+  input:checked + span:before {
+    transform: translateX(20px);
+  }
+`;
+
+const ModeSelector = styled.div`
+  display: flex;
+  margin-top: 0.5rem;
+  background: #222;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #444;
+`;
+
+const ModeButton = styled.button`
+  flex: 1;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: ${props => props.active ? '#007acc' : 'transparent'};
+  color: ${props => props.active ? '#fff' : '#ccc'};
+  border: none;
+  cursor: pointer;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: ${props => props.active ? '#007acc' : '#333'};
+  }
+  
+  svg {
+    font-size: 1rem;
+  }
+  
+  span {
+    font-size: 0.75rem;
+  }
+`;
+
 const ChatSidebar = () => {
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [actionStatus, setActionStatus] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [gatheringContext, setGatheringContext] = useState(false);
   const messagesEndRef = useRef(null);
   const { 
-    files, 
-    currentFile, 
+    aiResponses, 
     requestAIHelp, 
+    currentFile, 
     updateFile, 
-    addFile 
+    files,
+    addFile,
+    pairProgramming,
+    enablePairProgramming,
+    setPairProgrammingMode
   } = useStore();
+  
+  // Add state for tracking if generator should be open
+  const [showGenerator, setShowGenerator] = useState(false);
 
   // Syntax highlighting on message updates
   useEffect(() => {
     Prism.highlightAll();
-  }, [messages]);
+  }, [aiResponses]);
   
   // Auto-scroll to the bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [aiResponses]);
   
   // Initialize with a welcome message
   useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([{
-        text: "Hi, I'm your AI coding assistant! I can help you with code suggestions, refactoring, or explanations. What would you like me to help you with today?",
-        isAI: true
-      }]);
+    if (aiResponses.length === 0) {
+      aiResponses.push({
+        id: Date.now(),
+        sender: 'ai',
+        content: "Hi, I'm your AI coding assistant! I can help you with code suggestions, refactoring, or explanations. What would you like me to help you with today?",
+        timestamp: new Date().toISOString()
+      });
     }
   }, []);
 
@@ -314,33 +460,40 @@ ${currentFileContent}
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!message.trim()) return;
+    if (e) e.preventDefault();
+    if (!message.trim() || isSubmitting) return;
 
-    const userMessage = { text: message, isAI: false };
-    setMessages(prev => [...prev, userMessage]);
-    setMessage('');
-    setIsLoading(true);
-
-    try {
-      // Gather additional context from the workspace
-      const workspaceContext = gatherWorkspaceContext();
+    setIsSubmitting(true);
+    const userMessage = {
+      id: Date.now(),
+      sender: 'user',
+      content: message,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Add user message to chat
+    requestAIHelp(null, null, null); // This just adds the message to state
+    
+    // Get current workspace context
+    const context = gatherWorkspaceContext();
       
-      const response = await requestAIHelp(
+    try {
+      // Include pair programming info in the AI request
+      await requestAIHelp(
         currentFile?.content || '',
         message,
-        workspaceContext
+        {
+          ...context,
+          pairProgramming: pairProgramming.enabled ? {
+            mode: pairProgramming.mode
+          } : null
+        }
       );
-
-      setMessages(prev => [...prev, { text: response.code, isAI: true, id: Date.now() }]);
-    } catch (error) {
-      setMessages(prev => [...prev, { 
-        text: 'Sorry, I encountered an error processing your request. Please try again.', 
-        isAI: true,
-        id: Date.now()
-      }]);
+    } catch (err) {
+      console.error('Failed to get AI response:', err);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
+      setMessage('');
     }
   };
   
@@ -369,38 +522,48 @@ ${currentFileContent}
   
   const handleImplementCode = async (code, messageId) => {
     if (!currentFile) {
-      setActionStatus({
-        ...actionStatus,
-        [messageId]: { status: 'error', message: 'No file is open to apply code to' }
+      aiResponses.push({
+        id: Date.now(),
+        sender: 'ai',
+        content: 'No file is open to apply code to',
+        timestamp: new Date().toISOString()
       });
       return;
     }
     
-    setActionStatus({
-      ...actionStatus,
-      [messageId]: { status: 'loading', message: 'Implementing code...' }
+    aiResponses.push({
+      id: Date.now(),
+      sender: 'ai',
+      content: 'Implementing code...',
+      timestamp: new Date().toISOString()
     });
     
     try {
       // Update the current file with the code
       await updateFile(currentFile.id, { content: code });
       
-      setActionStatus({
-        ...actionStatus,
-        [messageId]: { status: 'success', message: 'Code implemented successfully!' }
+      aiResponses.push({
+        id: Date.now(),
+        sender: 'ai',
+        content: 'Code implemented successfully!',
+        timestamp: new Date().toISOString()
       });
       
       // Clear success message after 3 seconds
       setTimeout(() => {
-        setActionStatus({
-          ...actionStatus,
-          [messageId]: null
+        aiResponses.push({
+          id: Date.now(),
+          sender: 'ai',
+          content: null,
+          timestamp: new Date().toISOString()
         });
       }, 3000);
     } catch (error) {
-      setActionStatus({
-        ...actionStatus,
-        [messageId]: { status: 'error', message: 'Failed to implement code' }
+      aiResponses.push({
+        id: Date.now(),
+        sender: 'ai',
+        content: 'Failed to implement code',
+        timestamp: new Date().toISOString()
       });
     }
   };
@@ -410,9 +573,11 @@ ${currentFileContent}
     const fileName = prompt('Enter a filename for the new file:', 'newFile.js');
     if (!fileName) return;
     
-    setActionStatus({
-      ...actionStatus,
-      [messageId]: { status: 'loading', message: 'Creating new file...' }
+    aiResponses.push({
+      id: Date.now(),
+      sender: 'ai',
+      content: 'Creating new file...',
+      timestamp: new Date().toISOString()
     });
     
     try {
@@ -425,35 +590,41 @@ ${currentFileContent}
       
       const createdFile = addFile(newFile);
       
-      setActionStatus({
-        ...actionStatus,
-        [messageId]: { status: 'success', message: `File "${fileName}" created successfully!` }
+      aiResponses.push({
+        id: Date.now(),
+        sender: 'ai',
+        content: `File "${fileName}" created successfully!`,
+        timestamp: new Date().toISOString()
       });
       
       // Clear success message after 3 seconds
       setTimeout(() => {
-        setActionStatus({
-          ...actionStatus,
-          [messageId]: null
+        aiResponses.push({
+          id: Date.now(),
+          sender: 'ai',
+          content: null,
+          timestamp: new Date().toISOString()
         });
       }, 3000);
     } catch (error) {
-      setActionStatus({
-        ...actionStatus,
-        [messageId]: { status: 'error', message: 'Failed to create new file' }
+      aiResponses.push({
+        id: Date.now(),
+        sender: 'ai',
+        content: 'Failed to create new file',
+        timestamp: new Date().toISOString()
       });
     }
   };
 
   const renderMessageContent = (message) => {
-    if (!message.isAI) {
-      return <p>{message.text}</p>;
+    if (message.sender === 'user') {
+      return <p>{message.content}</p>;
     }
     
-    const blocks = extractCodeBlocks(message.text);
+    const blocks = extractCodeBlocks(message.content);
     
     if (blocks.length === 0) {
-      return <p>{message.text}</p>;
+      return <p>{message.content}</p>;
     }
     
     return (
@@ -477,10 +648,10 @@ ${currentFileContent}
                   
                   <ActionButton
                     onClick={() => handleImplementCode(block.content, message.id)}
-                    disabled={actionStatus[message.id]?.status === 'loading'}
+                    disabled={aiResponses[message.id]?.content === 'Implementing code...'}
                     title="Implement this code in the current file"
                   >
-                    {actionStatus[message.id]?.status === 'loading' ? (
+                    {aiResponses[message.id]?.content === 'Implementing code...' ? (
                       <><FaSpinner size={12} /> Implementing...</>
                     ) : (
                       <><FaPlay size={12} /> Implement</>
@@ -489,22 +660,22 @@ ${currentFileContent}
                   
                   <ActionButton
                     onClick={() => handleCreateNewFile(block.content, message.id)}
-                    disabled={actionStatus[message.id]?.status === 'loading'}
+                    disabled={aiResponses[message.id]?.content === 'Implementing code...'}
                     title="Create a new file with this code"
                   >
                     <FaCode size={12} /> New File
                   </ActionButton>
                 </CodeActions>
                 
-                {actionStatus[message.id] && (
+                {aiResponses[message.id]?.content && (
                   <div style={{ 
                     fontSize: '12px', 
-                    color: actionStatus[message.id].status === 'error' ? '#e74c3c' : '#2ecc71',
+                    color: aiResponses[message.id].content === 'Failed to implement code' ? '#e74c3c' : '#2ecc71',
                     marginTop: '0.5rem'
                   }}>
-                    {actionStatus[message.id].status === 'success' && <FaCheckCircle size={12} />}
-                    {actionStatus[message.id].status === 'error' && <FaTimesCircle size={12} />}
-                    {' ' + actionStatus[message.id].message}
+                    {aiResponses[message.id].content === 'Code implemented successfully!' && <FaCheckCircle size={12} />}
+                    {aiResponses[message.id].content === 'Failed to implement code' && <FaTimesCircle size={12} />}
+                    {' ' + aiResponses[message.id].content}
                   </div>
                 )}
               </div>
@@ -515,6 +686,22 @@ ${currentFileContent}
     );
   };
 
+  // Add the pair programming toggle handlers
+  const togglePairProgramming = () => {
+    enablePairProgramming(!pairProgramming.enabled);
+  };
+  
+  const setMode = (mode) => {
+    setPairProgrammingMode(mode);
+  };
+
+  // Add function to handle opening the generator
+  const handleOpenGenerator = () => {
+    // We'll use App state to control this, so we'll need to emit a custom event
+    const event = new CustomEvent('openPromptToFileGenerator');
+    window.dispatchEvent(event);
+  };
+
   return (
     <SidebarContainer>
       <ChatHeader>
@@ -522,33 +709,85 @@ ${currentFileContent}
           <FaRobot />
           <span>AI Code Assistant</span>
         </ChatTitle>
+        <HeaderActions>
+          <GenerateFilesButton onClick={handleOpenGenerator}>
+            <FaFileCode size={12} /> Generate Files
+          </GenerateFilesButton>
         <SettingsButton title="Settings">
           <FaCog size={16} />
         </SettingsButton>
+        </HeaderActions>
       </ChatHeader>
       
       <ChatMessages>
-        {messages.map((msg, index) => (
-          <Message key={index} isAI={msg.isAI}>
-            <MessageHeader isAI={msg.isAI}>
-              {msg.isAI ? <FaRobot /> : <FaUser />}
-              <span>{msg.isAI ? 'AI Assistant' : 'You'}</span>
+        {/* Add pair programming UI at the top */}
+        <PairProgrammingContainer>
+          <PairProgrammingHeader>
+            <PairProgrammingTitle>
+              <FaLaptopCode /> Pair Programming Mode
+            </PairProgrammingTitle>
+            <PairProgrammingToggle>
+              <span>{pairProgramming.enabled ? 'On' : 'Off'}</span>
+              <ToggleSwitch>
+                <input 
+                  type="checkbox" 
+                  checked={pairProgramming.enabled}
+                  onChange={togglePairProgramming}
+                />
+                <span></span>
+              </ToggleSwitch>
+            </PairProgrammingToggle>
+          </PairProgrammingHeader>
+          
+          {pairProgramming.enabled && (
+            <ModeSelector>
+              <ModeButton 
+                active={pairProgramming.mode === 'suggest'} 
+                onClick={() => setMode('suggest')}
+              >
+                <FaMagic />
+                <span>Suggest</span>
+              </ModeButton>
+              <ModeButton 
+                active={pairProgramming.mode === 'write'} 
+                onClick={() => setMode('write')}
+              >
+                <FaPencilAlt />
+                <span>Write</span>
+              </ModeButton>
+              <ModeButton 
+                active={pairProgramming.mode === 'explain'} 
+                onClick={() => setMode('explain')}
+              >
+                <FaBookOpen />
+                <span>Explain</span>
+              </ModeButton>
+            </ModeSelector>
+          )}
+        </PairProgrammingContainer>
+        
+        {aiResponses.map((msg) => (
+          <Message key={msg.id} isAI={msg.sender === 'ai'}>
+            <MessageHeader isAI={msg.sender === 'ai'}>
+              {msg.sender === 'ai' ? <FaRobot /> : <FaUser />}
+              <span>{msg.sender === 'ai' ? 'AI Assistant' : 'You'}</span>
             </MessageHeader>
             {renderMessageContent(msg)}
           </Message>
         ))}
-        {isLoading && (
+        
+        {isSubmitting && (
           <Message isAI={true}>
             <MessageHeader isAI={true}>
               <FaRobot />
               <span>AI Assistant</span>
             </MessageHeader>
             <div>
-              <FaSpinner style={{ animation: 'spin 1s linear infinite' }} /> 
-              Thinking...
+              <FaSpinner style={{ animation: 'spin 1s linear infinite' }} /> Thinking...
             </div>
           </Message>
         )}
+        
         <div ref={messagesEndRef} />
       </ChatMessages>
       
@@ -557,11 +796,14 @@ ${currentFileContent}
           <Input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Ask about your code, request improvements, or get explanations..."
+            placeholder={pairProgramming.enabled 
+              ? `Ask or instruct AI in ${pairProgramming.mode} mode...` 
+              : "Ask the AI assistant for help..."
+            }
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                handleSubmit(e);
+                handleSubmit();
               }
             }}
           />
@@ -570,9 +812,9 @@ ${currentFileContent}
               <StatusIndicator isActive={currentFile !== null} />
               {currentFile ? `Context: ${currentFile.name}` : 'No file context'}
             </ContextStatus>
-            <SendButton type="submit" disabled={isLoading || !message.trim()}>
-              {isLoading ? <FaSpinner /> : null}
-              {isLoading ? 'Processing...' : 'Send'}
+            <SendButton type="submit" disabled={!message.trim() || isSubmitting}>
+              {isSubmitting ? <FaSpinner /> : <FaPlay />}
+              Send
             </SendButton>
           </InputActions>
         </InputForm>

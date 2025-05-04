@@ -14,7 +14,9 @@ import {
   FaChevronRight, 
   FaChevronDown,
   FaEllipsisH,
-  FaSearch
+  FaSearch,
+  FaLock,
+  FaUserCheck
 } from 'react-icons/fa';
 
 // Styled components
@@ -49,6 +51,8 @@ const SearchBar = styled.div`
     padding: 0.5rem;
     padding-left: 2rem;
     color: #fff;
+    height: 30px; /* Fixed height for the search bar */
+    font-size: 13px; /* Adjust font size */
     
     &:focus {
       outline: 1px solid #007acc;
@@ -61,6 +65,7 @@ const SearchBar = styled.div`
     top: 50%;
     transform: translateY(-50%);
     color: #ccc;
+    font-size: 0.9rem; /* Make the search icon slightly smaller */
   }
 `;
 
@@ -88,6 +93,18 @@ const FileList = styled.div`
   flex: 1;
   overflow-y: auto;
   padding-top: 0.5rem;
+  
+  /* Hide the scrollbar but keep scrolling functionality */
+  &::-webkit-scrollbar {
+    width: 0;
+    background: transparent;
+  }
+  
+  /* For Firefox */
+  scrollbar-width: none;
+  
+  /* For IE and Edge */
+  -ms-overflow-style: none;
 `;
 
 const SectionTitle = styled.div`
@@ -119,6 +136,14 @@ const FileItem = styled.div`
   
   ${props => props.isActive && `
     background: #37373d;
+  `}
+  
+  ${props => props.isLocked && `
+    border-left: 2px solid #d33;
+  `}
+  
+  ${props => props.isOwned && `
+    border-left: 2px solid #0a0;
   `}
 `;
 
@@ -191,6 +216,17 @@ const NewItemForm = styled.div`
   }
 `;
 
+// Add styled component for ownership indicator
+const OwnershipIndicator = styled.div`
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  margin-right: 0.25rem;
+  opacity: 0.8;
+  font-size: 10px;
+  color: ${props => props.owned ? '#0a0' : '#d33'};
+`;
+
 // Helper for file icons
 const getFileIcon = (fileName) => {
   if (fileName.endsWith('.js') || fileName.endsWith('.jsx')) return <FaJs color="#e8d44d" />;
@@ -212,7 +248,10 @@ const FileTree = () => {
     updateFile,
     expandedFolders,
     toggleFolder,
-    recentFiles
+    recentFiles,
+    isFileOwnedByCurrentUser,
+    isFileOwnedByOthers,
+    getFileOwner
   } = useStore();
   
   const [contextMenu, setContextMenu] = useState(null);
@@ -392,16 +431,34 @@ const FileTree = () => {
   };
   
   const renderFile = (file, depth) => {
+    const isOwned = isFileOwnedByCurrentUser(file.id);
+    const isLocked = isFileOwnedByOthers(file.id);
+    const owner = getFileOwner(file.id);
+    
     return (
       <FileItem 
         depth={depth}
         isActive={currentFile?.id === file.id}
+        isOwned={isOwned}
+        isLocked={isLocked}
         onClick={() => handleFileClick(file)}
         onContextMenu={(e) => handleContextMenu(e, file)}
       >
         <FolderExpander />
         <Icon>{getFileIcon(file.name)}</Icon>
         <FileName>{file.name}</FileName>
+        
+        {/* Show ownership indicator */}
+        {(isOwned || isLocked) && (
+          <OwnershipIndicator owned={isOwned}>
+            {isOwned ? (
+              <FaUserCheck size={10} title="You own this file" />
+            ) : (
+              <FaLock size={10} title={`Owned by ${owner?.userName}`} />
+            )}
+          </OwnershipIndicator>
+        )}
+        
         <ItemActions className="actions">
           <span onClick={(e) => {
             e.stopPropagation();

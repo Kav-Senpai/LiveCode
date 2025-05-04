@@ -52,3 +52,165 @@ code {
   transform-origin: left top;
   transition: transform 0.1s ease-out;
 } 
+
+/* Pair Programming Mode Styles */
+.pair-programming-active .monaco-editor {
+  border: 2px solid rgba(0, 122, 204, 0.3);
+}
+
+/* Mode-specific styles */
+.pair-programming-suggest .monaco-editor .suggest-widget {
+  border-left: 3px solid #4caf50;
+}
+
+.pair-programming-write .monaco-editor {
+  background-color: rgba(0, 122, 204, 0.05);
+}
+
+.pair-programming-explain .monaco-editor .hover-contents {
+  border-left: 3px solid #ff9800;
+  padding-left: 8px;
+}
+
+/* Animations for pair programming activity */
+@keyframes pulse-suggest {
+  0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+}
+
+@keyframes pulse-write {
+  0% { box-shadow: 0 0 0 0 rgba(0, 122, 204, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(0, 122, 204, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 122, 204, 0); }
+}
+
+@keyframes pulse-explain {
+  0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+}
+
+.pair-programming-suggest .monaco-editor.focused {
+  animation: pulse-suggest 2s infinite;
+}
+
+.pair-programming-write .monaco-editor.focused {
+  animation: pulse-write 2s infinite;
+}
+
+.pair-programming-explain .monaco-editor.focused {
+  animation: pulse-explain 2s infinite;
+}
+
+/* File ownership styles */
+.file-owned {
+  border-left: 2px solid #0a0 !important;
+}
+
+.file-locked {
+  border-left: 2px solid #d33 !important;
+}
+
+/* Cursor styles for owned files */
+.owned-file-cursor {
+  border-left: 2px solid #0a0 !important;
+}
+
+.locked-file-cursor {
+  border-left: 2px dashed #d33 !important;
+}
+
+/* Ownership alert animations */
+@keyframes pulse-lock {
+  0% { background-color: rgba(220, 53, 69, 0.05); }
+  50% { background-color: rgba(220, 53, 69, 0.1); }
+  100% { background-color: rgba(220, 53, 69, 0.05); }
+}
+
+.editor-locked-overlay {
+  animation: pulse-lock 2s infinite;
+}
+
+/* Owner badge animations */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.owner-badge {
+  animation: fade-in 0.3s ease-out;
+} 
+
+/* Learning Mode Styles */
+.learning-mode-active .monaco-editor {
+  border: 2px solid rgba(70, 130, 180, 0.3);
+}
+
+/* Difficulty-specific styles */
+.learning-beginner .monaco-editor .suggest-widget {
+  border-left: 3px solid #4682b4;
+}
+
+.learning-intermediate .monaco-editor {
+  background-color: rgba(70, 130, 180, 0.05);
+}
+
+.learning-advanced .monaco-editor .hover-contents {
+  border-left: 3px solid #4682b4;
+  padding-left: 8px;
+}
+
+/* Animations for learning mode activity */
+@keyframes pulse-learning {
+  0% { box-shadow: 0 0 0 0 rgba(70, 130, 180, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(70, 130, 180, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(70, 130, 180, 0); }
+}
+
+.learning-mode-active .monaco-editor.focused {
+  animation: pulse-learning 2s infinite;
+}
+
+/* Highlight learning concepts in code */
+.learning-highlight {
+  background-color: rgba(70, 130, 180, 0.2);
+  border-bottom: 1px dashed #4682b4;
+}
+
+/* Learning concept tooltip */
+.learning-concept-tooltip {
+  position: absolute;
+  background: #252526;
+  border: 1px solid #4682b4;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 12px;
+  max-width: 300px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* Learning step marker */
+.learning-step-marker {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #4682b4;
+  color: white;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 4px;
+  cursor: pointer;
+  z-index: 100;
+}
+
+/* Current learning step highlight */
+.current-learning-step {
+  background-color: rgba(70, 130, 180, 0.1);
+  border-left: 4px solid #4682b4;
+} 
